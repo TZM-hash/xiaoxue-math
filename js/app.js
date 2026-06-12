@@ -229,7 +229,11 @@
       appendixBtn: document.getElementById("appendixBtn"),
       hardWordBtn: document.getElementById("hardWordBtn"),
       summaryPanel: document.getElementById("summaryPanel"),
-      challengeResultStrip: document.getElementById("challengeResultStrip"),
+      challengeResultOverlay: document.getElementById("challengeResultOverlay"),
+      challengeResultTitle: document.getElementById("challengeResultTitle"),
+      challengeResultBody: document.getElementById("challengeResultBody"),
+      challengeResultActions: document.getElementById("challengeResultActions"),
+      challengeResultClose: document.getElementById("challengeResultClose"),
       mobileChallengeResult: document.getElementById("mobileChallengeResult"),
       reviewPanel: document.getElementById("reviewPanel"),
       petSpaceTitle: document.getElementById("petSpaceTitle"),
@@ -4731,7 +4735,6 @@
       els.mobilePetHintPopover.hidden = true;
       els.mobilePetHintPopover.dataset.kind = "hint";
       els.mobilePetHintPopover.closest(".companion")?.classList.remove("hint-open", "result-open");
-      if (state.setFinished) startAutoReturnTimer();
     }
 
     function clearAutoReturn() {
@@ -4742,23 +4745,12 @@
     }
 
     function startAutoReturnTimer() {
-      // 闯关模式结束后不自动返回，等用户手动点"返回"或"下一关"
-      if (state.mode === "challenge") return;
-      clearAutoReturn();
-      state.autoReturnId = setTimeout(() => {
-        if (state.setFinished && state.view === "practice" && state.practiceLayer === "focus") {
-          showView("practice");
-          setPracticeLayer("setup");
-        }
-      }, 3000);
+      // 练习/闯关模式结束后不再自动返回，等用户手动点"返回"或"下一轮/下一关"
     }
 
     function openPetHintPopover(message, options = {}) {
       if (!els.mobilePetHintPopover || !els.mobilePetHintText) return;
       clearAutoReturn();
-      if (state.setFinished && (options.kind === "result" || options.kind === "answer")) {
-        startAutoReturnTimer();
-      }
       const kind = options.kind || "hint";
       const wasOpen = !els.mobilePetHintPopover.hidden;
       const sameKind = els.mobilePetHintPopover.dataset.kind === kind;
@@ -6037,8 +6029,9 @@
       state.roundCoins = 0;
       state.lastWrongRecordId = "";
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       resetRoundRuntime();
@@ -6062,8 +6055,9 @@
       state.roundCoins = 0;
       state.lastWrongRecordId = "";
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
@@ -6092,8 +6086,9 @@
       state.roundCoins = 0;
       state.lastWrongRecordId = "";
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
@@ -6180,8 +6175,9 @@
       state.roundCoins = draft.roundCoins;
       state.lastWrongRecordId = draft.lastWrongRecordId;
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
@@ -6201,7 +6197,7 @@
         return;
       }
       const level = progress.level || 1;
-      const count = clamp(6 + Math.floor((level - 1) / 2), 6, 14);
+      const count = clamp(10 + Math.floor((level - 1) / 2), 10, 14);
       const pointsForGrade = availablePoints(grade);
       const weak = weakestPoints(4).filter((point) => point.grade === grade);
       const challengePool = [...weak, ...pointsForGrade].filter((point, index, list) => list.findIndex((item) => item.id === point.id) === index);
@@ -6221,8 +6217,9 @@
       state.roundCoins = 0;
       state.lastWrongRecordId = "";
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
@@ -6255,8 +6252,9 @@
       state.roundCoins = 0;
       state.lastWrongRecordId = "";
       state.setFinished = false;
+      delete state._lastFinishResult;
       els.summaryPanel.hidden = true;
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
@@ -6656,10 +6654,19 @@
           </button>
         </div>`);
     }
+    function performanceSummary(rate, passed) {
+      if (rate >= 100) return "\u{1F31F} 太厉害了！全部答对，你是数学小天才！";
+      if (rate >= 90) return "\u{1F44D} 非常棒！正确率很高，继续保持！";
+      if (rate >= 80) return passed ? "\u{1F389} 过关了！做得不错，继续保持！" : "\u{1F4AA} 做得不错，再稳一点就能全对了！";
+      if (rate >= 60) return "\u{1F4DA} 还可以哦，多练几道会越来越好的！";
+      if (rate >= 40) return "\u{2764}\u{FE0F} 别灰心，每次练习都在进步！加油！";
+      return "\u{1F431} 慢慢来，认真看题，你可以的！我们一起加油！";
+    }
     function mobileResultPopoverHTML({ total, correct, rate, wrongCount, reward, challenge }) {
       const title = challenge
         ? (challenge.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`)
         : wrongCount ? "先复盘错题" : "本轮完成得很稳";
+      const summary = performanceSummary(rate, challenge?.passed);
       const next = challenge?.passed
         ? `下一次进入第 ${challenge.nextLevel} 关。`
         : wrongCount
@@ -6667,14 +6674,72 @@
           : "可以继续下一轮，或者打印题单巩固。";
       return `
         <span class="mobile-result-title">${escapeHTML(title)}</span>
+        <span class="mobile-result-summary">${escapeHTML(summary)}</span>
         <span class="mobile-result-grid">
           <b><em>${total}</em><small>完成</small></b>
           <b><em>${correct}</em><small>答对</small></b>
           <b><em>${rate}%</em><small>正确率</small></b>
           <b><em>+${reward.coins}</em><small>奖励</small></b>
         </span>
-        <span class="mobile-result-next">${escapeHTML(next)}</span>`;
+        <span class="mobile-result-next">${escapeHTML(next)}</span>
+        ${challenge ? `
+        <div class="result-buttons">
+          <button class="soft-btn" type="button" id="mcrBackBtn">← 返回设置</button>
+          <button class="danger" type="button" id="mcrNextBtn">${challenge.passed ? "下一关 →" : "再试一次 →"}</button>
+        </div>` : ''}`;
     }
+    function desktopResultPopoverHTML({ total, correct, rate, wrongCount, reward, challenge, elapsedMs, mode }) {
+      const isPractice = mode === "practice" || mode === "normal" || (!challenge && mode !== "challenge");
+      const icon = isPractice ? (wrongCount ? "\u{1F4DD}" : "\u{1F389}")
+        : challenge?.passed ? "\u{1F3C6}" : "\u{1F4AA}";
+      const title = isPractice
+        ? (wrongCount ? "本轮练习完成" : "本轮全对通过")
+        : challenge?.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`;
+      const subtitle = isPractice
+        ? (wrongCount ? `有 ${wrongCount} 道错题，建议回顾再开下一轮。` : "这一轮完成得很稳，可以继续下一轮。")
+        : challenge?.passed ? `下一次进入第 ${challenge.nextLevel} 关` : `正确率还差 ${challenge.passRate - rate}% 到达过关线`;
+      const summary = performanceSummary(rate, challenge?.passed);
+      const bodyHTML = `
+        <p class="crs-summary">${escapeHTML(summary)}</p>
+        <div class="crs-stat-grid">
+          <div class="crs-stat"><em>${icon}</em><strong>${escapeHTML(title)}</strong><span>${escapeHTML(subtitle)}</span></div>
+          <div class="crs-stat"><b>${total}</b><span>完成题目</span></div>
+          <div class="crs-stat"><b>${correct}</b><span>答对题目</span></div>
+          <div class="crs-stat"><b>${rate}%</b><span>本轮正确率</span></div>
+          <div class="crs-stat"><b>${formatDuration(elapsedMs)}</b><span>本轮用时</span></div>
+          <div class="crs-stat"><b>+${reward.coins}</b><span>完成奖励</span></div>
+          <div class="crs-stat"><b>+${state.roundCoins}</b><span>本轮金币</span></div>
+          <div class="crs-stat"><b>${reward.foundBack ? "已找回" : `+${reward.bond}`}</b><span>${reward.foundBack ? "宠物状态" : "亲密值"}</span></div>
+        </div>
+        ${wrongCount ? (isPractice ? `<p class="crs-hint">有 ${wrongCount} 道错题，建议先回顾错题再开下一轮。</p>` : `<p class="crs-hint">有 ${wrongCount} 道错题，建议先回顾错题再继续闯关。</p>`) : ""}`;
+      const actionsHTML = isPractice
+        ? `
+        <button class="soft-btn" type="button" id="crsBackBtn">← 返回设置</button>
+        <button class="danger" type="button" id="crsNextBtn">下一轮 →</button>`
+        : `
+        <button class="soft-btn" type="button" id="crsBackBtn">← 返回设置</button>
+        <button class="danger" type="button" id="crsNextBtn">${challenge?.passed ? "下一关 →" : "再试一次 →"}</button>`;
+      return { titleHTML: `<span aria-hidden="true">${icon}</span> ${escapeHTML(title)}`, bodyHTML, actionsHTML };
+    }
+    function openDesktopResultPopover(result, mode) {
+      if (!els.challengeResultOverlay) return;
+      clearAutoReturn();
+      els.challengeResultTitle.innerHTML = result.titleHTML;
+      els.challengeResultBody.innerHTML = result.bodyHTML;
+      els.challengeResultActions.innerHTML = result.actionsHTML;
+      els.challengeResultOverlay.hidden = false;
+      els.challengeResultOverlay.querySelector("#crsBackBtn")?.addEventListener("click", () => { closeDesktopResultPopover(); returnToPracticeSetup(); });
+      if (mode === "practice" || mode === "normal") {
+        els.challengeResultOverlay.querySelector("#crsNextBtn")?.addEventListener("click", () => { closeDesktopResultPopover(); startNewSet(); });
+      } else {
+        els.challengeResultOverlay.querySelector("#crsNextBtn")?.addEventListener("click", () => { closeDesktopResultPopover(); startChallengeSet(); });
+      }
+    }
+    function closeDesktopResultPopover() {
+      if (!els.challengeResultOverlay) return;
+      els.challengeResultOverlay.hidden = true;
+    }
+
     function kidExplainHTML(question, cause = "未标记") {
       const point = pointMap[question?.pointId];
       const kp = knowledgeProfileFor(point);
@@ -6721,7 +6786,29 @@
       renderPrintSheet(state.printQuestions.length, Number(els.perPageInput.value) || 20);
     }
     function finishSet() {
-      if (state.setFinished) return;
+      // 结果弹窗关闭后允许重新打开（复用首次计算的结果）
+      if (state.setFinished) {
+        if (state._lastFinishResult) {
+          const r = state._lastFinishResult;
+          const isChallenge = state.mode === "challenge";
+          if (shouldUseMobilePetHintPopover() && els.mobilePetHintPopover.hidden) {
+            openPetHintPopover(mobileResultPopoverHTML({ total: r.total, correct: r.correct, rate: r.rate, wrongCount: r.wrongCount, reward: r.reward, challenge: r.challenge }), {
+              kind: "result", title: isChallenge ? "闯关结果" : "本轮结果", html: true
+            });
+            if (isChallenge) {
+              setTimeout(() => {
+                const backBtn = document.getElementById("mcrBackBtn");
+                const nextBtn = document.getElementById("mcrNextBtn");
+                if (backBtn) backBtn.addEventListener("click", () => { closePetHintPopover(); returnToPracticeSetup(); });
+                if (nextBtn) nextBtn.addEventListener("click", () => { closePetHintPopover(); startChallengeSet(); });
+              }, 50);
+            }
+          } else if (!shouldUseMobilePetHintPopover() && els.challengeResultOverlay.hidden) {
+            openDesktopResultPopover(desktopResultPopoverHTML({ total: r.total, correct: r.correct, rate: r.rate, wrongCount: r.wrongCount, reward: r.reward, challenge: r.challenge, elapsedMs: r.elapsedMs, mode: state.mode }), isChallenge ? "challenge" : "practice");
+          }
+        }
+        return;
+      }
       state.setFinished = true;
       clearAutoNext();
       restoreCausePanelPlacement();
@@ -6731,7 +6818,7 @@
       const total = state.records.length;
       const wrong = state.records.filter((record) => record && !record.correct);
       playSound("finish");
-      els.summaryPanel.hidden = false;
+      els.summaryPanel.hidden = true;
       els.reviewPanel.hidden = true;
       const rate = total ? Math.round(state.correct / total * 100) : 0;
       const challenge = settleChallengeResult(total, state.correct, rate);
@@ -6744,7 +6831,7 @@
       const finishedCopy = state.mode === "timed"
         ? (state.timedMeta?.expired ? "时间到了，先看本次错题和薄弱点；下次可以少量多次练。" : "限时小测完成了，下面先看错题和用时节奏。")
         : challenge ? challenge.copy : "招财陪你完成这一轮了。下面可以回顾本轮错题，也可以直接按薄弱知识点继续练。";
-      els.challengeResultStrip.hidden = true;
+      els.challengeResultOverlay.hidden = true;
       // 统一 summary panel（桌面端和移动端共用）
       els.summaryPanel.innerHTML = petCopy(`
         <h2>${escapeHTML(finishedTitle)}</h2>
@@ -6781,69 +6868,49 @@
       els.summaryPanel.querySelector("[data-jump]").addEventListener("click", () => showView("wrongbook"));
       setFeedback(wrong.length ? "bad" : "good", wrong.length ? '招财：本轮有错题，点"回顾本轮错题"可以看通俗讲解。' : "招财：本轮没有错题，完成得很稳。", wrong.length ? "📒" : "🏆");
       updatePetStatus(wrong.length ? "招财：错题不用怕，我们把每一步拆开看。" : "招财：这一轮很稳，我的信心也涨起来了。", wrong.length ? "复盘" : "完成");
-      // 移动端闯关：在招财陪练下方显示紧凑结果卡片（不弹窗）
-      const showMobileChallengeInline = state.mode === "challenge" && challenge && shouldUseMobilePetHintPopover();
-      if (showMobileChallengeInline) {
-        els.summaryPanel.hidden = true;
-        const mcrIcon = challenge.passed ? "\u{1F3C6}" : "\u{1F4AA}";
-        const mcrTitle = challenge.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`;
-        const mcrStats = challenge.passed
-          ? `${total} 题 · 正确率 ${rate}% · 用时 ${formatDuration(elapsedMs)} · +${reward.coins} 金币`
-          : `正确率 ${rate}% / 过关线 ${challenge.passRate}% · 用时 ${formatDuration(elapsedMs)}`;
-        els.mobileChallengeResult.innerHTML = petCopy(`
-          <div class="mcr-head">
-            <span class="mcr-icon" aria-hidden="true">${mcrIcon}</span>
-            <strong>${escapeHTML(mcrTitle)}</strong>
-          </div>
-          <div class="mcr-stats">${escapeHTML(mcrStats)}</div>
-          <div class="mcr-actions">
-            <button class="soft-btn" type="button" id="mcrBackBtn">← 返回设置</button>
-            ${wrong.length ? `<button class="secondary" type="button" id="mcrReviewBtn">📒 回顾错题</button>` : ""}
-            <button class="danger" type="button" id="mcrNextBtn">${challenge.passed ? "下一关 →" : "再试一次 →"}</button>
-          </div>`);
-        els.mobileChallengeResult.hidden = false;
-        els.mobileChallengeResult.querySelector("#mcrBackBtn").addEventListener("click", returnToPracticeSetup);
-        els.mobileChallengeResult.querySelector("#mcrNextBtn").addEventListener("click", startChallengeSet);
-        if (wrong.length) {
-          els.mobileChallengeResult.querySelector("#mcrReviewBtn").addEventListener("click", renderRoundReview);
-        }
-      } else if (state.mode === "challenge" && challenge) {
-        // 桌面/平板闯关：显示紧凑结果 strip
+      // 缓存本轮结果，供弹窗关闭后重新打开使用
+      state._lastFinishResult = { total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge, elapsedMs };
+      // 移动端闯关：弹窗模式显示闯关结果
+      if (state.mode === "challenge" && challenge && shouldUseMobilePetHintPopover()) {
         els.summaryPanel.hidden = true;
         els.mobileChallengeResult.hidden = true;
-        const crsIcon = challenge.passed ? "\u{1F3C6}" : "\u{1F4AA}";
-        const crsTitle = challenge.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`;
-        const crsStats = challenge.passed
-          ? `${total} 题 · 正确率 ${rate}% · 用时 ${formatDuration(elapsedMs)} · +${reward.coins} 金币`
-          : `正确率 ${rate}% / 过关线 ${challenge.passRate}% · 用时 ${formatDuration(elapsedMs)}`;
-        els.challengeResultStrip.innerHTML = petCopy(`
-          <span class="crs-icon" aria-hidden="true">${crsIcon}</span>
-          <div class="crs-body">
-            <strong>${escapeHTML(crsTitle)}</strong>
-            <span>${escapeHTML(crsStats)}</span>
-          </div>
-          <div class="crs-actions">
-            <button class="soft-btn" type="button" id="crsBackBtn">← 返回设置</button>
-            <button class="danger" type="button" id="crsNextBtn">${challenge.passed ? "下一关 →" : "再试一次 →"}</button>
-          </div>`);
-        els.challengeResultStrip.hidden = false;
-        els.challengeResultStrip.querySelector("#crsBackBtn").addEventListener("click", returnToPracticeSetup);
-        els.challengeResultStrip.querySelector("#crsNextBtn").addEventListener("click", startChallengeSet);
+        openPetHintPopover(mobileResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge }), {
+          kind: "result",
+          title: "闯关结果",
+          html: true
+        });
+        // 绑定弹窗内按钮事件
+        setTimeout(() => {
+          const backBtn = document.getElementById("mcrBackBtn");
+          const nextBtn = document.getElementById("mcrNextBtn");
+          if (backBtn) backBtn.addEventListener("click", () => { closePetHintPopover(); returnToPracticeSetup(); });
+          if (nextBtn) nextBtn.addEventListener("click", () => { closePetHintPopover(); startChallengeSet(); });
+        }, 50);
+      } else if (state.mode === "challenge" && challenge) {
+        // 桌面/平板闯关：弹窗模式显示闯关结果
+        els.summaryPanel.hidden = true;
+        els.mobileChallengeResult.hidden = true;
+        openDesktopResultPopover(desktopResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge, elapsedMs, mode: "challenge" }), "challenge");
       } else {
+        // 普通练习 / 限时 / 错题模式
         els.mobileChallengeResult.hidden = true;
         if (shouldUseMobilePetHintPopover()) {
+          // 移动端：保持现有弹窗
           openPetHintPopover(mobileResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge }), {
             kind: "result",
             title: "本轮结果",
             html: true
           });
+        } else {
+          // 桌面/平板练习模式：弹窗显示本轮结果
+          els.summaryPanel.hidden = true;
+          openDesktopResultPopover(desktopResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge: null, elapsedMs, mode: "practice" }), "practice");
         }
       }
       els.answerInput.disabled = true;
       els.checkBtn.disabled = true;
       saveProfiles();
       renderChrome();
-      startAutoReturnTimer();
       renderChallengePanel(activeProfile());
       if (state.view === "report") renderReport();
     }
@@ -7930,6 +7997,8 @@
       setPetAction("hint", "提示");
     });
     els.mobilePetHintClose?.addEventListener("click", closePetHintPopover);
+    els.challengeResultClose?.addEventListener("click", closeDesktopResultPopover);
+    els.challengeResultOverlay?.addEventListener("click", function(e) { if (e.target === els.challengeResultOverlay || e.target.classList.contains("crs-backdrop")) closeDesktopResultPopover(); });
     els.petShopGrid?.addEventListener("click", (event) => {
       const btn = event.target.closest("[data-pet-buy]");
       if (btn) {

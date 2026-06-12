@@ -280,7 +280,19 @@
           </article>
 
           <article class="summary-panel" id="summaryPanel" hidden></article>
-          <div class="challenge-result-strip" id="challengeResultStrip" hidden></div>
+          <div class="challenge-result-overlay" id="challengeResultOverlay" hidden>
+            <div class="crs-backdrop"></div>
+            <div class="crs-card">
+              <span class="crs-spark spark-one" aria-hidden="true">★</span>
+              <span class="crs-spark spark-two" aria-hidden="true">●</span>
+              <div class="crs-head">
+                <strong id="challengeResultTitle">🏁 闯关结果</strong>
+                <button type="button" id="challengeResultClose" aria-label="关闭闯关结果">×</button>
+              </div>
+              <div class="crs-body" id="challengeResultBody"></div>
+              <div class="crs-actions" id="challengeResultActions"></div>
+            </div>
+          </div>
           <article class="review-panel" id="reviewPanel" hidden></article>
         </section>
       </div>
