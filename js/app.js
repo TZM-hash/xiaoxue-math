@@ -4728,10 +4728,29 @@
       els.mobilePetHintPopover.hidden = true;
       els.mobilePetHintPopover.dataset.kind = "hint";
       els.mobilePetHintPopover.closest(".companion")?.classList.remove("hint-open", "result-open");
+      if (state.setFinished) startAutoReturnTimer();
+    }
+
+    function clearAutoReturn() {
+      if (state.autoReturnId) {
+        clearTimeout(state.autoReturnId);
+        state.autoReturnId = null;
+      }
+    }
+
+    function startAutoReturnTimer() {
+      clearAutoReturn();
+      state.autoReturnId = setTimeout(() => {
+        if (state.setFinished) showView("practice");
+      }, 3000);
     }
 
     function openPetHintPopover(message, options = {}) {
       if (!els.mobilePetHintPopover || !els.mobilePetHintText) return;
+      clearAutoReturn();
+      if (state.setFinished && (options.kind === "result" || options.kind === "answer")) {
+        startAutoReturnTimer();
+      }
       const kind = options.kind || "hint";
       const wasOpen = !els.mobilePetHintPopover.hidden && els.mobilePetHintPopover.dataset.kind === kind;
       if (wasOpen) {
@@ -5175,7 +5194,7 @@
       state.petTaskClaimLocks.add(lockKey);
       document.querySelectorAll(`[data-pet-task-period="${period}"][data-pet-task-id="${id}"]`).forEach((btn) => {
         btn.disabled = true;
-        btn.textContent = "已完成";
+        btn.textContent = "领取中...";
       });
       const before = {
         tasks: JSON.parse(JSON.stringify(pet.tasks || { daily: {}, weekly: {} })),
@@ -5213,6 +5232,12 @@
       }
       renderPetSpace(profile);
       renderPetTasks(profile);
+      document.querySelectorAll(`[data-pet-task-period="${period}"][data-pet-task-id="${id}"]`).forEach((btn) => {
+        btn.disabled = true;
+        btn.textContent = "已完成";
+        btn.classList.remove("primary");
+        btn.classList.add("secondary");
+      });
       updatePetStatus(`招财：${task.title}完成了，额外奖励 ${task.reward} 金币。`, "领奖励");
       setPetAction("finish", "领奖励");
       UI.notify(`已完成：${task.title}，金币 +${task.reward}`);
@@ -6716,6 +6741,7 @@
       els.checkBtn.disabled = true;
       saveProfiles();
       renderChrome();
+      startAutoReturnTimer();
       renderChallengePanel(activeProfile());
       if (state.view === "report") renderReport();
       setTimeout(() => {
