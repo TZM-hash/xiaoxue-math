@@ -229,6 +229,8 @@
       appendixBtn: document.getElementById("appendixBtn"),
       hardWordBtn: document.getElementById("hardWordBtn"),
       summaryPanel: document.getElementById("summaryPanel"),
+      challengeResultStrip: document.getElementById("challengeResultStrip"),
+      mobileChallengeResult: document.getElementById("mobileChallengeResult"),
       reviewPanel: document.getElementById("reviewPanel"),
       petSpaceTitle: document.getElementById("petSpaceTitle"),
       petSpaceLead: document.getElementById("petSpaceLead"),
@@ -673,7 +675,7 @@
       const today = todayKey();
       return {
         name: "招财",
-        coins: 100,  // 临时调试：默认100金币
+        coins: 0,
         mood: 70,
         hunger: 70,
         clean: 70,
@@ -1188,7 +1190,7 @@
       if (els.homePlanCopy) {
         const first = weak[0];
         els.homePlanCopy.textContent = first
-          ? `先补最需要的一小块：今天建议练“${first.label}”，短练 8-10 题，做完再看错因和同类题。`
+          ? `先补最需要的一小块：今天建议练"${first.label}"，短练 8-10 题，做完再看错因和同类题。`
           : "先补最需要的一小块：完成一轮 8-10 题，系统会根据正确率和错题自动推荐薄弱点。";
       }
       els.homeWeakList.innerHTML = weak.map((point, index) => {
@@ -1371,11 +1373,11 @@
       return "规则计算";
     }
     function methodHintFor(question) {
-      if (!question) return "先判断题型，再列式。遇到应用题，先把“已知”和“要求”分开看。";
+      if (!question) return '先判断题型，再列式。遇到应用题，先把"已知"和"要求"分开看。';
       const hints = {
         addsub: "加减题先看符号。加法是合起来，减法是拿走或比较差多少。",
         compare: "比较多少一般用减法：大数减小数。",
-        muldiv: "乘除题先想“每份多少、几份”或用乘法口诀反推。",
+        muldiv: '乘除题先想"每份多少、几份"或用乘法口诀反推。',
         remainder: "有余数除法先找不超过被除数的最大倍数，再看剩下多少。",
         mixed: "混合运算先看括号，再算乘除，最后算加减。",
         twostep: "两步计算先写第一步的中间结果，再把中间结果放进第二步继续算。",
@@ -1389,7 +1391,7 @@
         ratio: "比例题先求总份数，再求每一份是多少。",
         statistics: "统计题先读清表格或数据，找总数、最多最少、平均数这些关键词。",
         equation: "方程题先把未知数看成 x，等式两边做相同的运算。",
-        word: "应用题先找“已知什么、要求什么”，再把数量关系翻译成算式。",
+        word: '应用题先找"已知什么、要求什么"，再把数量关系翻译成算式。',
         appendix: "附加题不要急着算，先判断模型：规律、和差倍、植树、行程、比例或假设法。"
       };
       return hints[question.topic] || hints.word;
@@ -1433,7 +1435,7 @@
         return `
         <div class="step-gate">
           <strong>提示默认隐藏</strong>
-          <span>${escapeHTML(petCopy("先独立读题和列式；需要帮助时，点右侧“让招财提示”。"))}</span>
+          <span>${escapeHTML(petCopy('先独立读题和列式；需要帮助时，点右侧"让招财提示"。'))}</span>
         </div>`;
       }
       if (!state.checked) {
@@ -1532,7 +1534,7 @@
           rule: "只练 100 以内进位加法和退位减法：加法个位满十要进 1，减法个位不够要向十位借 1。",
           subskills: ["个位进位", "十位加进位", "个位退位", "退位后再减"],
           pitfalls: ["进位后十位忘加 1", "退位后个位没有加 10", "结果超过 100"],
-          practice: "建议先用直接输入，再用判断题检查“是否进退位”。"
+          practice: '建议先用直接输入，再用判断题检查"是否进退位"。'
         };
       }
       return profile;
@@ -1984,7 +1986,7 @@
               text: `在 ${a} 后面再加 ${b}，结果是多少？`,
               answer: a + b,
               word: true,
-              explanation: `“再加”就是加法。把原来的 ${a} 和新增加的 ${b} 合起来，${a} + ${b} = ${a + b}。`,
+              explanation: `"再加"就是加法。把原来的 ${a} 和新增加的 ${b} 合起来，${a} + ${b} = ${a + b}。`,
               steps: [`原来有 ${a}。`, `又增加 ${b}。`, `合起来是 ${a + b}。`]
             });
           },
@@ -2007,7 +2009,7 @@
               text: `白色金吉拉有 ${a} 张卡片，小朋友比它多 ${diff} 张。小朋友有多少张？`,
               answer: a + diff,
               word: true,
-              explanation: `“比它多 ${diff} 张”就是在 ${a} 的基础上加 ${diff}。`,
+              explanation: `"比它多 ${diff} 张"就是在 ${a} 的基础上加 ${diff}。`,
               steps: [`金吉拉有 ${a} 张。`, `小朋友多 ${diff} 张。`, `${a} + ${diff} = ${a + diff} 张。`]
             });
           },
@@ -2650,14 +2652,14 @@
           text: `${b} 比 ${a} 多多少？`,
           answer: diff,
           word: true,
-          explanation: `问“多多少”就是求两个数的差。用较大的 ${b} 减去较小的 ${a}，得到 ${diff}。`,
+          explanation: `问"多多少"就是求两个数的差。用较大的 ${b} 减去较小的 ${a}，得到 ${diff}。`,
           steps: [`找到两个数：${b} 和 ${a}。`, `比较多少用减法。`, `${b} - ${a} = ${diff}。`]
         }),
         () => baseQuestion(point, {
           text: `${a} 比 ${b} 少多少？`,
           answer: diff,
           word: true,
-          explanation: `问“少多少”也是比较两个数的差。用大数 ${b} 减小数 ${a}，得到 ${diff}。`,
+          explanation: `问"少多少"也是比较两个数的差。用大数 ${b} 减小数 ${a}，得到 ${diff}。`,
           steps: [`大数是 ${b}。`, `小数是 ${a}。`, `${b} - ${a} = ${diff}。`]
         }),
         () => {
@@ -2723,7 +2725,7 @@
           () => baseQuestion(point, {
             text: `${a} × ${b} = ?`,
             answer: a * b,
-            explanation: `乘法可以看成“${b} 组，每组 ${a} 个”。想乘法口诀或分组相加，${a} × ${b} = ${a * b}。`,
+            explanation: `乘法可以看成"${b} 组，每组 ${a} 个"。想乘法口诀或分组相加，${a} × ${b} = ${a * b}。`,
             steps: [`把乘法看成 ${b} 组。`, `每组有 ${a} 个。`, `一共是 ${a} × ${b} = ${a * b}。`]
           }),
           () => baseQuestion(point, {
@@ -2747,7 +2749,7 @@
       return baseQuestion(point, {
         text: `${divisor * quotient} ÷ ${divisor} = ?`,
         answer: quotient,
-        explanation: `除法表示平均分。想“${divisor} 乘几等于 ${divisor * quotient}”，所以答案是 ${quotient}。`,
+        explanation: `除法表示平均分。想"${divisor} 乘几等于 ${divisor * quotient}"，所以答案是 ${quotient}。`,
         steps: [`把 ${divisor * quotient} 平均分成 ${divisor} 份。`, `想乘法：${divisor} × ${quotient} = ${divisor * quotient}。`, `所以商是 ${quotient}。`]
       });
     }
@@ -3301,7 +3303,7 @@
             text: `长方形的一组长和宽合起来是 ${half} cm，周长是多少 cm？`,
             answer: half * 2,
             word: true,
-            explanation: `长方形周长由两组“长 + 宽”组成。一组长宽和是 ${half} cm，所以周长是 ${half} × 2 = ${half * 2} cm。`,
+            explanation: `长方形周长由两组"长 + 宽"组成。一组长宽和是 ${half} cm，所以周长是 ${half} × 2 = ${half * 2} cm。`,
             steps: [`一组长宽和是 ${half} cm。`, `长方形有两组长宽和。`, `${half} × 2 = ${half * 2} cm。`],
             templateType: "周长关系"
           });
@@ -3683,7 +3685,7 @@
             text: `盒子里原来有 ${total} 颗贴纸，用掉 ${used} 颗，还剩多少颗？`,
             answer: total - used,
             word: true,
-            explanation: `题目问“还剩”，说明要从原来的数量里拿走一部分，用减法。${total} - ${used} = ${total - used}。`,
+            explanation: `题目问"还剩"，说明要从原来的数量里拿走一部分，用减法。${total} - ${used} = ${total - used}。`,
             steps: [`原来有 ${total} 颗。`, `用掉 ${used} 颗，要做减法。`, `${total} - ${used} = ${total - used} 颗。`]
           });
         },
@@ -3694,7 +3696,7 @@
             text: `书架上有 ${a} 本故事书，又放上 ${b} 本。一共有多少本？`,
             answer: a + b,
             word: true,
-            explanation: `题目问“一共”，就是把两部分合起来，用加法。${a} + ${b} = ${a + b}。`,
+            explanation: `题目问"一共"，就是把两部分合起来，用加法。${a} + ${b} = ${a + b}。`,
             steps: [`先找到两部分：${a} 本和 ${b} 本。`, `求一共用加法。`, `${a} + ${b} = ${a + b} 本。`]
           });
         },
@@ -3705,7 +3707,7 @@
             text: `小猫有 ${a + diff} 枚贴纸，小兔有 ${a} 枚。小猫比小兔多多少枚？`,
             answer: diff,
             word: true,
-            explanation: `问“多多少”就是比较两个数的差。用小猫的 ${a + diff} 减小兔的 ${a}。`,
+            explanation: `问"多多少"就是比较两个数的差。用小猫的 ${a + diff} 减小兔的 ${a}。`,
             steps: [`小猫 ${a + diff} 枚。`, `小兔 ${a} 枚。`, `${a + diff} - ${a} = ${diff} 枚。`]
           });
         },
@@ -3742,7 +3744,7 @@
             text: `${each * groups} 个苹果平均装进 ${groups} 个袋子，每袋装多少个？`,
             answer: each,
             word: true,
-            explanation: `题目说“平均装进”，每袋一样多，用除法。${each * groups} ÷ ${groups} = ${each}。`,
+            explanation: `题目说"平均装进"，每袋一样多，用除法。${each * groups} ÷ ${groups} = ${each}。`,
             steps: [`总共有 ${each * groups} 个。`, `平均分成 ${groups} 袋。`, `${each * groups} ÷ ${groups} = ${each} 个。`]
           });
         },
@@ -3780,7 +3782,7 @@
             text: `图书角原有 ${total} 本书，借走 ${used} 本，又新买 ${add} 本。现在有多少本？`,
             answer: total - used + add,
             word: true,
-            explanation: `先处理“借走”，用减法；再处理“新买”，用加法。${total} - ${used} + ${add} = ${total - used + add}。`,
+            explanation: `先处理"借走"，用减法；再处理"新买"，用加法。${total} - ${used} + ${add} = ${total - used + add}。`,
             steps: [`借走后：${total} - ${used} = ${total - used}。`, `又新买：${total - used} + ${add} = ${total - used + add}。`]
           });
         },
@@ -4026,7 +4028,7 @@
               text: `小猫排队，前面有 ${before} 只，后面有 ${after} 只。这一队一共有多少只小猫？`,
               answer,
               word: true,
-              explanation: `排队题别忘了把“小猫自己”也算进去。前面 ${before} 只，后面 ${after} 只，再加自己 1 只。`,
+              explanation: `排队题别忘了把"小猫自己"也算进去。前面 ${before} 只，后面 ${after} 只，再加自己 1 只。`,
               steps: [`前面有 ${before} 只。`, `后面有 ${after} 只。`, `总数 = ${before} + 1 + ${after} = ${answer}。`]
             });
           },
@@ -4050,7 +4052,7 @@
             const n = rand(10, 30 + level * 4);
             const answer = (n - 1) % cycle.length + 1;
             return baseQuestion(point, {
-              text: `彩灯按“红、黄、蓝”循环排列，第 ${n} 盏灯是第几种颜色？（红填1，黄填2，蓝填3）`,
+              text: `彩灯按"红、黄、蓝"循环排列，第 ${n} 盏灯是第几种颜色？（红填1，黄填2，蓝填3）`,
               answer,
               word: true,
               explanation: `这是周期问题。3 盏一组，看第 ${n} 盏在这一组里的第几个位置。余数 ${n % 3 || 3} 对应第 ${answer} 种颜色。`,
@@ -4105,7 +4107,7 @@
               text: `一条路的一边种了 ${trees} 棵树，每两棵相距 ${gap} 米，从第一棵到最后一棵相距多少米？`,
               answer,
               word: true,
-              explanation: `植树问题要先数“间隔”。${trees} 棵树之间有 ${trees - 1} 个间隔，每个间隔 ${gap} 米。`,
+              explanation: `植树问题要先数"间隔"。${trees} 棵树之间有 ${trees - 1} 个间隔，每个间隔 ${gap} 米。`,
               steps: [`间隔数 = ${trees} - 1 = ${trees - 1}。`, `总距离 = ${trees - 1} × ${gap} = ${answer} 米。`]
             });
           },
@@ -4132,7 +4134,7 @@
               text: `甲、乙共有 ${sum} 本书，甲的本数是乙的 ${times} 倍。乙有多少本？`,
               answer: small,
               word: true,
-              explanation: `和倍问题先看“份数”。乙是 1 份，甲是 ${times} 份，一共 ${times + 1} 份。`,
+              explanation: `和倍问题先看"份数"。乙是 1 份，甲是 ${times} 份，一共 ${times + 1} 份。`,
               steps: [`总份数：${times} + 1 = ${times + 1}。`, `每份：${sum} ÷ ${times + 1} = ${small}。`, `乙是 1 份，所以乙有 ${small} 本。`]
             });
           },
@@ -4740,6 +4742,8 @@
     }
 
     function startAutoReturnTimer() {
+      // 闯关模式结束后不自动返回，等用户手动点"返回"或"下一关"
+      if (state.mode === "challenge") return;
       clearAutoReturn();
       state.autoReturnId = setTimeout(() => {
         if (state.setFinished && state.view === "practice" && state.practiceLayer === "focus") {
@@ -4979,6 +4983,7 @@
     }
 
     function returnToPracticeSetup() {
+      els.mobileChallengeResult.hidden = true;
       setPracticeLayer("setup");
     }
 
@@ -5534,7 +5539,7 @@
                 <small>${tierLabels[tier]}</small>
                 <div class="pet-shop-buy">
                   <span>${item.price} 金币</span>
-                  <button class="secondary" type="button" data-pet-buy="${item.id}" ${afford ? "" : "disabled"}>购买</button>
+                  <button class="primary" type="button" data-pet-buy="${item.id}" ${afford ? "" : "disabled"}>购买</button>
                 </div>
               </article>`;
             }).join("")}
@@ -6033,6 +6038,8 @@
       state.lastWrongRecordId = "";
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       resetRoundRuntime();
       renderPracticeQuestion();
@@ -6056,6 +6063,8 @@
       state.lastWrongRecordId = "";
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
       resetRoundRuntime();
@@ -6084,6 +6093,8 @@
       state.lastWrongRecordId = "";
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
       resetRoundRuntime();
@@ -6148,8 +6159,8 @@
         btn.disabled = true;
       });
       setFeedback(record.correct ? "good" : "bad", record.correct
-        ? "已恢复到上次答对的位置，点“下一题”继续闯关。"
-        : "已恢复到上次答错的位置，保存错因或点“下一题”继续闯关。", record.correct ? "😄" : "😯");
+        ? '已恢复到上次答对的位置，点"下一题"继续闯关。'
+        : '已恢复到上次答错的位置，保存错因或点"下一题"继续闯关。', record.correct ? "😄" : "😯");
       updatePetStatus(record.correct ? "招财：这关我帮你记着了，继续下一题就行。" : "招财：这题也保存着，先把错因补上再继续。", "已保存");
       if (!record.correct) {
         state.lastWrongRecordId = record.id;
@@ -6170,6 +6181,8 @@
       state.lastWrongRecordId = draft.lastWrongRecordId;
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
       resetRoundRuntime();
@@ -6209,6 +6222,8 @@
       state.lastWrongRecordId = "";
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
       resetRoundRuntime();
@@ -6241,6 +6256,8 @@
       state.lastWrongRecordId = "";
       state.setFinished = false;
       els.summaryPanel.hidden = true;
+      els.challengeResultStrip.hidden = true;
+      els.mobileChallengeResult.hidden = true;
       els.reviewPanel.hidden = true;
       showView("practice");
       resetRoundRuntime();
@@ -6281,9 +6298,9 @@
       els.saveCauseBtn.textContent = "直接下一题";
       els.saveCauseBtn.disabled = false;
       state.stepHintOpen = false;
-      const petPrompt = current.word ? "我陪你先读题：找“已知什么、要求什么”，再决定用加减乘除。" : "我陪你先看运算符号，再按正确顺序计算。";
+      const petPrompt = current.word ? '我陪你先读题：找"已知什么、要求什么"，再决定用加减乘除。' : '我陪你先看运算符号，再按正确顺序计算。';
       els.companionTalk.textContent = petPrompt;
-      els.methodHint.textContent = petCopy("提示默认隐藏。需要帮助时，点“让招财提示”。");
+      els.methodHint.textContent = petCopy('提示默认隐藏。需要帮助时，点"让招财提示"。');
       renderAnswerModePanel(current);
       const interactionMode = current.interaction?.mode || "input";
       setFeedback("", interactionMode === "choice"
@@ -6292,7 +6309,7 @@
           ? "判断这句话正确或错误，点一下就会检查。"
           : current.answerLabel
             ? "这题可能有余数或分数，输入主要数值即可，讲解里会显示完整答案。"
-            : "输入答案后点“检查答案”，按回车也可以提交。", "🤔");
+            : '输入答案后点"检查答案"，按回车也可以提交。', "🤔");
       const appendixPoint = appendixPointForGrade(state.grade);
       els.appendixPreview.textContent = `${gradeNames[state.grade - 1]}附加题：${appendixPoint.helper}。答题前先想模型，再列式。`;
       renderStats();
@@ -6397,7 +6414,7 @@
           profile.rewards.clearedWrong = (profile.rewards.clearedWrong || 0) + 1;
           awardCoins(8, "掌握错题");
           pet.bond = clamp(pet.bond + 3, 0, 100);
-          els.companionTalk.textContent = "这道错题已经连续做对 3 次，移入“已掌握错题”记录了。招财额外奖励 8 金币。";
+          els.companionTalk.textContent = '这道错题已经连续做对 3 次，移入"已掌握错题"记录了。招财额外奖励 8 金币。';
           showRewardRibbon({ title: "错题掌握", copy: "连续做对 3 次，招财把它收进已掌握记录。", coins: 8 });
         }
       } else {
@@ -6533,7 +6550,7 @@
         return;
       }
       setFeedback("saved", `已保存错因：${cause}。做完本轮后可以在错题回顾里看讲解。`, "📝");
-      updatePetStatus(`招财：我记住了，这题的错因是“${cause}”。回顾时我们就从这里重新拆。`, "记住了");
+      updatePetStatus(`招财：我记住了，这题的错因是"${cause}"。回顾时我们就从这里重新拆。`, "记住了");
       els.saveCauseBtn.textContent = "✅ 已保存";
       els.saveCauseBtn.disabled = true;
       const current = state.currentSet[state.index];
@@ -6598,7 +6615,7 @@
           : rate >= 85
             ? "正确率比较稳，可以尝试附加题或应用题强化，训练读题和建模。"
             : weak
-              ? `建议下一轮练“${weak.label}”，先把这个知识点做稳。`
+              ? `建议下一轮练"${weak.label}"，先把这个知识点做稳。`
               : "建议再做一轮 6-10 题，积累更多练习样本。";
       return petCopy(`
         <div class="round-coach">
@@ -6621,7 +6638,7 @@
       const similarCopy = wrong.length
         ? "先挑本轮第一道错题的同类题练 3 道，马上巩固刚刚卡住的知识点。"
         : weak
-          ? `下一轮优先练“${weak.label}”，保持节奏，不用一次练太多。`
+          ? `下一轮优先练"${weak.label}"，保持节奏，不用一次练太多。`
           : "继续做一小轮，积累更多练习记录后建议会更准。";
       return petCopy(`
         <div class="round-action-grid" aria-label="本轮学习闭环">
@@ -6727,6 +6744,8 @@
       const finishedCopy = state.mode === "timed"
         ? (state.timedMeta?.expired ? "时间到了，先看本次错题和薄弱点；下次可以少量多次练。" : "限时小测完成了，下面先看错题和用时节奏。")
         : challenge ? challenge.copy : "招财陪你完成这一轮了。下面可以回顾本轮错题，也可以直接按薄弱知识点继续练。";
+      els.challengeResultStrip.hidden = true;
+      // 统一 summary panel（桌面端和移动端共用）
       els.summaryPanel.innerHTML = petCopy(`
         <h2>${escapeHTML(finishedTitle)}</h2>
         <p class="muted">${escapeHTML(finishedCopy)}</p>
@@ -6743,8 +6762,8 @@
         ${roundAdviceHTML(wrong, rate, challenge)}
         ${roundActionCardsHTML(wrong, rate)}
         <div class="row-actions">
-          <button class="primary" type="button" id="reviewWrongBtn">${wrong.length ? "回顾本轮错题" : "查看本轮总结"}</button>
-          <button class="secondary" type="button" id="continueWeakBtn">${challenge?.passed ? "继续下一关" : "按薄弱点继续练"}</button>
+          <button class="${challenge ? 'soft-btn' : 'primary'}" type="button" id="reviewWrongBtn">${wrong.length ? "回顾本轮错题" : "查看本轮总结"}</button>
+          <button class="${challenge ? 'danger' : 'secondary'}" type="button" id="continueWeakBtn">${challenge?.passed ? "继续下一关" : "按薄弱点继续练"}</button>
           <button class="secondary" type="button" data-jump="wrongbook">打开错题本</button>
         </div>`);
       els.summaryPanel.querySelector("#reviewWrongBtn").addEventListener("click", renderRoundReview);
@@ -6760,14 +6779,65 @@
         else startWeakPractice();
       });
       els.summaryPanel.querySelector("[data-jump]").addEventListener("click", () => showView("wrongbook"));
-      setFeedback(wrong.length ? "bad" : "good", wrong.length ? "招财：本轮有错题，点“回顾本轮错题”可以看通俗讲解。" : "招财：本轮没有错题，完成得很稳。", wrong.length ? "📒" : "🏆");
+      setFeedback(wrong.length ? "bad" : "good", wrong.length ? '招财：本轮有错题，点"回顾本轮错题"可以看通俗讲解。' : "招财：本轮没有错题，完成得很稳。", wrong.length ? "📒" : "🏆");
       updatePetStatus(wrong.length ? "招财：错题不用怕，我们把每一步拆开看。" : "招财：这一轮很稳，我的信心也涨起来了。", wrong.length ? "复盘" : "完成");
-      if (shouldUseMobilePetHintPopover()) {
-        openPetHintPopover(mobileResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge }), {
-          kind: "result",
-          title: "本轮结果",
-          html: true
-        });
+      // 移动端闯关：在招财陪练下方显示紧凑结果卡片（不弹窗）
+      const showMobileChallengeInline = state.mode === "challenge" && challenge && shouldUseMobilePetHintPopover();
+      if (showMobileChallengeInline) {
+        els.summaryPanel.hidden = true;
+        const mcrIcon = challenge.passed ? "\u{1F3C6}" : "\u{1F4AA}";
+        const mcrTitle = challenge.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`;
+        const mcrStats = challenge.passed
+          ? `${total} 题 · 正确率 ${rate}% · 用时 ${formatDuration(elapsedMs)} · +${reward.coins} 金币`
+          : `正确率 ${rate}% / 过关线 ${challenge.passRate}% · 用时 ${formatDuration(elapsedMs)}`;
+        els.mobileChallengeResult.innerHTML = petCopy(`
+          <div class="mcr-head">
+            <span class="mcr-icon" aria-hidden="true">${mcrIcon}</span>
+            <strong>${escapeHTML(mcrTitle)}</strong>
+          </div>
+          <div class="mcr-stats">${escapeHTML(mcrStats)}</div>
+          <div class="mcr-actions">
+            <button class="soft-btn" type="button" id="mcrBackBtn">← 返回设置</button>
+            ${wrong.length ? `<button class="secondary" type="button" id="mcrReviewBtn">📒 回顾错题</button>` : ""}
+            <button class="danger" type="button" id="mcrNextBtn">${challenge.passed ? "下一关 →" : "再试一次 →"}</button>
+          </div>`);
+        els.mobileChallengeResult.hidden = false;
+        els.mobileChallengeResult.querySelector("#mcrBackBtn").addEventListener("click", returnToPracticeSetup);
+        els.mobileChallengeResult.querySelector("#mcrNextBtn").addEventListener("click", startChallengeSet);
+        if (wrong.length) {
+          els.mobileChallengeResult.querySelector("#mcrReviewBtn").addEventListener("click", renderRoundReview);
+        }
+      } else if (state.mode === "challenge" && challenge) {
+        // 桌面/平板闯关：显示紧凑结果 strip
+        els.summaryPanel.hidden = true;
+        els.mobileChallengeResult.hidden = true;
+        const crsIcon = challenge.passed ? "\u{1F3C6}" : "\u{1F4AA}";
+        const crsTitle = challenge.passed ? `第 ${challenge.level} 关通过` : `第 ${challenge.level} 关还差一点`;
+        const crsStats = challenge.passed
+          ? `${total} 题 · 正确率 ${rate}% · 用时 ${formatDuration(elapsedMs)} · +${reward.coins} 金币`
+          : `正确率 ${rate}% / 过关线 ${challenge.passRate}% · 用时 ${formatDuration(elapsedMs)}`;
+        els.challengeResultStrip.innerHTML = petCopy(`
+          <span class="crs-icon" aria-hidden="true">${crsIcon}</span>
+          <div class="crs-body">
+            <strong>${escapeHTML(crsTitle)}</strong>
+            <span>${escapeHTML(crsStats)}</span>
+          </div>
+          <div class="crs-actions">
+            <button class="soft-btn" type="button" id="crsBackBtn">← 返回设置</button>
+            <button class="danger" type="button" id="crsNextBtn">${challenge.passed ? "下一关 →" : "再试一次 →"}</button>
+          </div>`);
+        els.challengeResultStrip.hidden = false;
+        els.challengeResultStrip.querySelector("#crsBackBtn").addEventListener("click", returnToPracticeSetup);
+        els.challengeResultStrip.querySelector("#crsNextBtn").addEventListener("click", startChallengeSet);
+      } else {
+        els.mobileChallengeResult.hidden = true;
+        if (shouldUseMobilePetHintPopover()) {
+          openPetHintPopover(mobileResultPopoverHTML({ total, correct: state.correct, rate, wrongCount: wrong.length, reward, challenge }), {
+            kind: "result",
+            title: "本轮结果",
+            html: true
+          });
+        }
       }
       els.answerInput.disabled = true;
       els.checkBtn.disabled = true;
@@ -6786,7 +6856,7 @@
       }
       els.reviewPanel.innerHTML = petCopy(`
         <h2>本轮错题回顾</h2>
-        <p class="muted">招财会先用孩子能听懂的话解释，再给 2-3 个步骤。建议看完后点“同类题 3 道”马上巩固。</p>
+        <p class="muted">招财会先用孩子能听懂的话解释，再给 2-3 个步骤。建议看完后点"同类题 3 道"马上巩固。</p>
         <div class="review-list">
           ${wrong.map((record, index) => {
             const q = record.question;
@@ -6866,10 +6936,10 @@
       const copy = almost.length
         ? `有 ${almost.length} 道题已经连续做对 2 次，再做对 1 次会自动移入已掌握记录，并额外奖励金币。`
         : hot.length
-          ? `先攻 ${hot.length} 道反复出错的题。建议先看讲解，再点“同类题”做 3 道变式。`
+          ? `先攻 ${hot.length} 道反复出错的题。建议先看讲解，再点"同类题"做 3 道变式。`
           : gradeWrongCount
             ? weak
-              ? `本年级还有 ${gradeWrongCount} 道错题。今天可以从“${weak.label}”开始，${name}会把错因一起记下来。`
+              ? `本年级还有 ${gradeWrongCount} 道错题。今天可以从"${weak.label}"开始，${name}会把错因一起记下来。`
               : `本年级还有 ${gradeWrongCount} 道错题。先按连续做对次数少的题复练。`
             : "今天没有需要复习的错题，可以先做一轮普通练习，或者挑战薄弱知识点。";
       return `<article class="wrong-pet-coach">
@@ -7085,7 +7155,7 @@
         els.causeReportList.insertAdjacentHTML("beforeend", `
           <div class="report-item">
             <div class="item-top"><h3>已掌握错题沉淀</h3><span class="mastered-chip">${masteredForGrade.length} 题</span></div>
-            <p>这些题已经连续做对 3 次，不再占用错题本，但会保留在报告里，方便家长看到孩子从“反复错”到“已掌握”的变化。</p>
+            <p>这些题已经连续做对 3 次，不再占用错题本，但会保留在报告里，方便家长看到孩子从"反复错"到"已掌握"的变化。</p>
           </div>`);
       }
       els.causeReportList.querySelectorAll("[data-cause-practice]").forEach((btn) => {
@@ -7116,7 +7186,7 @@
           ? `近 7 天完成 ${last7.length} 题，正确率 ${lastRate}%，比上一周期${delta >= 0 ? "提高" : "下降"} ${Math.abs(delta)} 个百分点。`
           : `近 7 天完成 ${last7.length} 题，正确率 ${lastRate}%。继续保持每天少量练习，报告会越来越准确。`;
       const planCopy = planPoint
-        ? `建议接下来优先练“${planPoint.label}”：先做 6 道基础题，再做 3 道同类题，最后回看错因。`
+        ? `建议接下来优先练"${planPoint.label}"：先做 6 道基础题，再做 3 道同类题，最后回看错因。`
         : "建议先按当前年级混合练习，积累足够记录后再自动推荐专项。";
       const dailyPlan = buildDailyPlan(profile, planPoint, weakPoints);
       els.trendReportList.innerHTML = `
@@ -7230,7 +7300,7 @@
         const kp = knowledgeProfileFor(weak);
         advices.push({
           title: `优先巩固：${weak.label}`,
-          copy: `${kp.rule} 建议使用“${weak.topic === "word" || weak.topic === "mixed" ? "分步作答" : "智能混合"}”，连续做 6-10 题后再看错因。`,
+          copy: `${kp.rule} 建议使用"${weak.topic === "word" || weak.topic === "mixed" ? "分步作答" : "智能混合"}"，连续做 6-10 题后再看错因。`,
           action: "按这个知识点练",
           pointId: weak.id
         });
@@ -7284,7 +7354,7 @@
     function causeAdvice(cause) {
       const map = {
         "计算粗心": "建议让孩子算完后反向检查一遍，重点看符号、进退位、口诀和最后一步。",
-        "读题理解": "先划关键词，例如“一共、还剩、平均、每份、比多比少”，再决定用什么算式。",
+        "读题理解": '先划关键词，例如"一共、还剩、平均、每份、比多比少"，再决定用什么算式。',
         "概念单位": "先回到概念和单位关系，例如口诀、分数意义、小数点位置、1 米 = 100 厘米。",
         "不会做": "建议先看招财讲解，把题目拆成第一步、第二步，再做 2-3 道同类题。"
       };
@@ -7392,8 +7462,8 @@
         } else {
           state.printQuestions = [];
           state.printBlockedReason = pointId === "auto"
-            ? `${gradeNames[state.grade - 1]}当前没有可打印的错题。可以先在线练习，或把模板改成“普通练习卷”。`
-            : `${gradeNames[state.grade - 1]}的“${pointLabel(pointId)}”当前没有错题。可以重新选择知识点，或改为生成同类新题。`;
+            ? `${gradeNames[state.grade - 1]}当前没有可打印的错题。可以先在线练习，或把模板改成"普通练习卷"。`
+            : `${gradeNames[state.grade - 1]}的"${pointLabel(pointId)}"当前没有错题。可以重新选择知识点，或改为生成同类新题。`;
         }
       } else {
         state.printQuestions = Array.from({ length: count }, () => {
@@ -7448,7 +7518,7 @@
       }
       const wrongCount = questions.filter((q) => q.printCause).length;
       const weakLabel = weakPoints[0]?.label || (strictPoint ? pointLabel(pointId) : "按年级混合");
-      state.printBlockedReason = `今日推荐卷已组合 ${wrongCount} 道错题复习、薄弱点“${weakLabel}”和混合检查题。`;
+      state.printBlockedReason = `今日推荐卷已组合 ${wrongCount} 道错题复习、薄弱点"${weakLabel}"和混合检查题。`;
       return questions.slice(0, count);
     }
     function renderPrintSheet(count, perPage) {
@@ -7695,7 +7765,7 @@
             els.importPreview.hidden = false;
             els.importPreview.classList.remove("bad");
             const repairCopy = pending.repairNotes.length ? `<br><span>已自动处理：${pending.repairNotes.map(escapeHTML).join("；")}。</span>` : "";
-            els.importPreview.innerHTML = `将导入 <strong>${pending.profiles.length}</strong> 个学生档案、<strong>${pending.historyCount}</strong> 条练习记录、<strong>${pending.wrongCount}</strong> 条错题、<strong>${pending.masteredCount}</strong> 条已掌握记录、<strong>${pending.petCount}</strong> 份宠物养成数据。${repairCopy}<br>再次点击“确认导入”会覆盖当前本机数据。`;
+            els.importPreview.innerHTML = `将导入 <strong>${pending.profiles.length}</strong> 个学生档案、<strong>${pending.historyCount}</strong> 条练习记录、<strong>${pending.wrongCount}</strong> 条错题、<strong>${pending.masteredCount}</strong> 条已掌握记录、<strong>${pending.petCount}</strong> 份宠物养成数据。${repairCopy}<br>再次点击"确认导入"会覆盖当前本机数据。`;
           }
           els.importBtn.textContent = "确认导入";
           return;
@@ -7855,7 +7925,7 @@
       if (!isWaitingForCauseSave()) {
         renderAnswerModePanel(current);
       }
-      updatePetStatus(`招财：这题属于“${pointLabel(current.pointId)}”。${hint}`, "提示");
+      updatePetStatus(`招财：这题属于"${pointLabel(current.pointId)}"。${hint}`, "提示");
       if (shouldUseMobilePetHintPopover()) openPetHintPopover(hint);
       setPetAction("hint", "提示");
     });
