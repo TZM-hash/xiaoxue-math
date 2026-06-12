@@ -2258,11 +2258,12 @@
         ],
         word: [
           () => {
+            if (grade === 1) return null;
             const per = rand(4, grade <= 2 ? 9 : 18);
             const days = rand(3, 8);
             const extra = rand(2, 12);
             return baseQuestion(point, {
-              text: `白色金吉拉每天做 ${per} 道口算，连续做 ${days} 天后又多做 ${extra} 道，一共做了多少道？`,
+              text: `白色金吉拉每天做 ${per} 道口算，连续做 ${days} 天后又多做 ${extra} 道,一共做了多少道？`,
               answer: per * days + extra,
               word: true,
               explanation: `先求连续 ${days} 天一共做多少，再加上多做的 ${extra} 道。`,
@@ -4741,7 +4742,9 @@
     function startAutoReturnTimer() {
       clearAutoReturn();
       state.autoReturnId = setTimeout(() => {
-        if (state.setFinished) showView("practice");
+        if (state.setFinished && state.view === "practice" && state.practiceLayer === "focus") {
+          showView("practice");
+        }
       }, 3000);
     }
 
