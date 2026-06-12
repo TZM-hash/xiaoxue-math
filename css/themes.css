@@ -2836,7 +2836,7 @@
     .pet-shop-item,
     .pet-bag-item {
       display: grid;
-      grid-template-rows: 42px auto auto;
+      grid-template-columns: 1fr;
       gap: 8px;
       align-items: center;
       justify-items: center;
