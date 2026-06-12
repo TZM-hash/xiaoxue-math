@@ -68,7 +68,7 @@
       { id: "five-points", title: "知识点探索", desc: "练过 5 个不同知识点。", test: (p) => new Set(p.history.map((item) => item.pointId)).size >= 5 },
       { id: "careful-review", title: "认真订正", desc: "保存过 5 次错因。", test: (p) => p.history.filter((item) => causes.includes(normalizeCause(item.cause))).length >= 5 }
     ];
-    const PET_XP_PER_LEVEL = 80;
+    const PET_XP_PER_LEVEL = 150;
     const PET_SHOP = Array.isArray(PetEconomy.SHOP) ? PetEconomy.SHOP : [];
     const PET_ITEM_MAP = Object.fromEntries(PET_SHOP.map((item) => [item.id, item]));
     const PET_CARE_LIMITS = PetEconomy.CARE_LIMITS || {};
@@ -192,6 +192,7 @@
       checkBtn: document.getElementById("checkBtn"),
       nextBtn: document.getElementById("nextBtn"),
       skipBtn: document.getElementById("skipBtn"),
+      showAnswerBtn: document.getElementById("showAnswerBtn"),
       similarBtn: document.getElementById("similarBtn"),
       resetSetBtn: document.getElementById("resetSetBtn"),
       practiceCard: document.getElementById("practiceCard"),
@@ -2024,6 +2025,7 @@
         ],
         muldiv: [
           () => {
+            if (grade === 1) return null;
             const groups = rand(2, grade <= 2 ? 9 : 16);
             const each = rand(2, grade <= 2 ? 9 : 24);
             return baseQuestion(point, {
@@ -2035,6 +2037,7 @@
             });
           },
           () => {
+            if (grade === 1) return null;
             const each = rand(2, 9 + level);
             const groups = rand(3, 12);
             return baseQuestion(point, {
@@ -2339,6 +2342,7 @@
         ],
         muldiv: [
           () => {
+            if (grade === 1) return null;
             const a = rand(2, grade <= 2 ? 9 : 24);
             const b = rand(3, 9 + level);
             const c = rand(2, 6);
@@ -2350,6 +2354,7 @@
             });
           },
           () => {
+            if (grade === 1) return null;
             const quotient = rand(4, 18);
             const divisor = rand(2, 9);
             const multiplier = rand(2, 5);
@@ -4728,16 +4733,33 @@
     function openPetHintPopover(message, options = {}) {
       if (!els.mobilePetHintPopover || !els.mobilePetHintText) return;
       const kind = options.kind || "hint";
-      els.mobilePetHintPopover.dataset.kind = kind;
-      if (els.mobilePetHintTitle) {
-        els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
+      const wasOpen = !els.mobilePetHintPopover.hidden && els.mobilePetHintPopover.dataset.kind === kind;
+      if (wasOpen) {
+        els.mobilePetHintPopover.hidden = true;
+        setTimeout(() => {
+          els.mobilePetHintPopover.dataset.kind = kind;
+          if (els.mobilePetHintTitle) {
+            els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : kind === "answer" ? "👁️" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
+          }
+          if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : kind === "answer" ? "关闭答案" : `关闭${petDisplayName()}提示`);
+          if (options.html) els.mobilePetHintText.innerHTML = message;
+          else els.mobilePetHintText.textContent = message;
+          els.mobilePetHintPopover.hidden = false;
+          els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
+          els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
+        }, 100);
+      } else {
+        els.mobilePetHintPopover.dataset.kind = kind;
+        if (els.mobilePetHintTitle) {
+          els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : kind === "answer" ? "👁️" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
+        }
+        if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : kind === "answer" ? "关闭答案" : `关闭${petDisplayName()}提示`);
+        if (options.html) els.mobilePetHintText.innerHTML = message;
+        else els.mobilePetHintText.textContent = message;
+        els.mobilePetHintPopover.hidden = false;
+        els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
+        els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
       }
-      if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : `关闭${petDisplayName()}提示`);
-      if (options.html) els.mobilePetHintText.innerHTML = message;
-      else els.mobilePetHintText.textContent = message;
-      els.mobilePetHintPopover.hidden = false;
-      els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
-      els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
     }
 
     function setFeedback(kind, message, face = "") {
@@ -5487,27 +5509,17 @@
         </section>`;
       }).join("");
       const bagItems = PET_SHOP.filter((item) => (pet.inventory?.[item.id] || 0) > 0);
-      els.petBagList.innerHTML = bagItems.length ? ["basic", "advanced", "rare"].map((tier) => {
-        const items = bagItems.filter((item) => (item.tier || "advanced") === tier);
-        if (!items.length) return "";
-        return `<section class="pet-shop-tier pet-bag-tier" aria-label="${tierLabels[tier]}">
-          <div class="pet-shop-tier-head">
-            <h3>${tierLabels[tier]}</h3>
-            <span>和商店同样排列，数量和使用入口都在卡片底部。</span>
+      els.petBagList.innerHTML = bagItems.length ? `<div class="pet-bag-grid">
+        ${bagItems.map((item) => `<article class="pet-bag-item" tabindex="0" role="button" data-pet-detail="${item.id}" aria-label="查看${escapeHTML(item.name)}作用">
+          <div class="pet-shop-icon" aria-hidden="true">${item.icon}</div>
+          <strong>${escapeHTML(item.name)}</strong>
+          <small>${tierLabels[item.tier || "advanced"] || "招财用品"}</small>
+          <div class="pet-shop-buy">
+            <span>背包 ${pet.inventory[item.id]} 件</span>
+            <button class="primary" type="button" data-pet-use="${item.id}" ${pet.runaway?.status === "lost" && !item.rename ? "disabled" : ""}>使用</button>
           </div>
-          <div class="pet-shop-tier-grid">
-            ${items.map((item) => `<article class="pet-bag-item" tabindex="0" role="button" data-pet-detail="${item.id}" aria-label="查看${escapeHTML(item.name)}作用">
-              <div class="pet-shop-icon" aria-hidden="true">${item.icon}</div>
-              <strong>${escapeHTML(item.name)}</strong>
-              <small>${tierLabels[tier] || "招财用品"}</small>
-              <div class="pet-shop-buy">
-                <span>背包 ${pet.inventory[item.id]} 件</span>
-                <button class="primary" type="button" data-pet-use="${item.id}" ${pet.runaway?.status === "lost" && !item.rename ? "disabled" : ""}>使用</button>
-              </div>
-            </article>`).join("")}
-          </div>
-        </section>`;
-      }).join("") : `<section class="pet-bag-empty" aria-live="polite">
+        </article>`).join("")}
+      </div>` : `<section class="pet-bag-empty" aria-live="polite">
         <div class="pet-shop-icon" aria-hidden="true">🎒</div>
         <strong>背包还是空的</strong>
         <span>完成练习获得金币后，可以先去宠物商店买普通猫粮、小毛巾或毛线球。</span>
@@ -5630,6 +5642,30 @@
       UI.notify("学生设置已保存。");
     }
 
+    function showItemFloatText(itemId, text, color, action) {
+      const selector = action === "buy" ? `[data-pet-buy="${itemId}"]` : `[data-pet-use="${itemId}"]`;
+      const btn = document.querySelector(selector);
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const float = document.createElement("div");
+      float.textContent = text;
+      float.style.cssText = `
+        position: fixed;
+        left: ${rect.left + rect.width / 2}px;
+        top: ${rect.top}px;
+        transform: translate(-50%, -50%);
+        color: ${color};
+        font-size: 18px;
+        font-weight: 900;
+        pointer-events: none;
+        z-index: 10000;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        animation: floatUp 1.2s ease-out forwards;
+      `;
+      document.body.appendChild(float);
+      setTimeout(() => float.remove(), 1200);
+    }
+
     function buyPetItem(id) {
       const item = PET_ITEM_MAP[id];
       if (!item) return;
@@ -5665,6 +5701,7 @@
       }
       state.petItemActionLocks.delete(lockKey);
       renderPetSpace(profile);
+      showItemFloatText(id, "+1", "var(--success)", "buy");
       updatePetStatus(`${petDisplayName(profile)}收到了${item.name}，可以在背包里使用。`, "买到啦");
     }
 
@@ -5737,7 +5774,9 @@
         return;
       }
       state.petItemActionLocks.delete(lockKey);
+      showItemFloatText(id, "-1", "var(--danger)", "use");
       renderPetSpace(profile);
+      closePetModals();
       updatePetStatus(`${petDisplayName(profile)}使用了${item.name}。${item.desc}。`, "舒服");
       setPetAction(careKind === "feed" ? "fed" : careKind === "clean" ? "clean" : careKind === "play" ? "play" : "comfy", "舒服");
     }
@@ -6176,6 +6215,7 @@
       els.checkBtn.disabled = false;
       els.nextBtn.textContent = state.index === state.currentSet.length - 1 ? "🏁 查看结果" : "➡️ 下一题";
       els.similarBtn.disabled = false;
+      if (els.showAnswerBtn) els.showAnswerBtn.disabled = true;
       setFeedback("", "", "");
       restoreCausePanelPlacement();
       els.causePanel.classList.remove("active");
@@ -6387,6 +6427,7 @@
         playSound("wrong");
         els.numberPad.hidden = shouldHideAnswerControlsForWrong(current);
         showCausePanelForWrong(current);
+        if (els.showAnswerBtn) els.showAnswerBtn.disabled = false;
       }
       updateMastery(current.pointId, correct);
       if (state.mode === "wrongbook") updateWrongbookAttempt(current.wrongId, correct);
@@ -6463,6 +6504,17 @@
       renderPracticeQuestion();
       saveChallengeDraft({ persist: true });
     }
+    function showAnswerPopover() {
+      const current = state.currentSet[state.index];
+      if (!current || !state.checked) return;
+      const answerText = `正确答案：${formatAnswer(current.answer, current.answerLabel)}`;
+      if (shouldUseMobilePetHintPopover()) {
+        openPetHintPopover(answerText, { kind: "answer", title: "查看答案", html: false });
+      } else {
+        UI.notify(answerText);
+      }
+    }
+
     function skipQuestion() {
       clearAutoNext();
       if (state.checked) return nextQuestion();
@@ -6666,6 +6718,9 @@
       renderChrome();
       renderChallengePanel(activeProfile());
       if (state.view === "report") renderReport();
+      setTimeout(() => {
+        if (state.setFinished) showView("practice");
+      }, 3000);
     }
     function renderRoundReview() {
       const wrong = state.records.filter((record) => record && !record.correct);
@@ -7699,7 +7754,8 @@
     els.backToSetupBtn.addEventListener("click", returnToPracticeSetup);
     els.checkBtn.addEventListener("click", checkAnswer);
     els.nextBtn.addEventListener("click", nextQuestion);
-    els.skipBtn.addEventListener("click", skipQuestion);
+    if (els.skipBtn) els.skipBtn.addEventListener("click", skipQuestion);
+    if (els.showAnswerBtn) els.showAnswerBtn.addEventListener("click", showAnswerPopover);
     els.resetSetBtn.addEventListener("click", resetCurrentSet);
     els.similarBtn.addEventListener("click", () => {
       const current = state.currentSet[state.index];

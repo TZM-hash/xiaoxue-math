@@ -320,6 +320,7 @@
     @keyframes pet-tail-wag { 0%, 100% { transform: rotate(18deg); } 50% { transform: rotate(36deg) translateY(-2px); } }
     @keyframes pet-jump { 0%, 100% { transform: translateX(-50%) translateY(0) rotate(0); } 28% { transform: translateX(-50%) translateY(-22px) rotate(-5deg); } 58% { transform: translateX(-50%) translateY(-8px) rotate(5deg); } }
     @keyframes pet-comfort { 0%, 100% { transform: translateX(-50%) translateY(0); } 28% { transform: translateX(calc(-50% - 6px)) translateY(2px); } 62% { transform: translateX(calc(-50% + 6px)) translateY(1px); } }
+    @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -120px) scale(1.3); } }
     @keyframes pet-hint-nod { 0%, 100% { transform: translateX(-50%) rotate(0); } 35% { transform: translateX(-50%) rotate(3deg) translateY(3px); } 70% { transform: translateX(-50%) rotate(-3deg) translateY(-3px); } }
     @keyframes pet-encourage { 0%, 100% { transform: translateX(-50%) scale(1); } 38% { transform: translateX(-50%) translateY(-9px) scale(1.05); } 68% { transform: translateX(-50%) translateY(-2px) scale(.99); } }
     @keyframes pet-room-walk {
@@ -2791,6 +2792,16 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
+    .pet-bag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-height: min(480px, calc(100dvh - 260px));
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding: 2px 4px 4px 2px;
+      scrollbar-width: thin;
+    }
     .pet-shop-card .pet-shop-grid,
     .pet-bag-card .pet-bag-list {
       max-height: min(480px, calc(100dvh - 260px));
@@ -4563,6 +4574,12 @@
       .pet-shop-tier-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 5px;
+      }
+      .pet-bag-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+        max-height: min(330px, calc(100dvh - 245px));
+        padding-right: 2px;
       }
       .pet-bag-list {
         grid-template-columns: repeat(3, minmax(0, 1fr));
