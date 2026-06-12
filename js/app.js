@@ -4744,6 +4744,7 @@
       state.autoReturnId = setTimeout(() => {
         if (state.setFinished && state.view === "practice" && state.practiceLayer === "focus") {
           showView("practice");
+          setPracticeLayer("setup");
         }
       }, 3000);
     }
@@ -6747,9 +6748,6 @@
       startAutoReturnTimer();
       renderChallengePanel(activeProfile());
       if (state.view === "report") renderReport();
-      setTimeout(() => {
-        if (state.setFinished) showView("practice");
-      }, 3000);
     }
     function renderRoundReview() {
       const wrong = state.records.filter((record) => record && !record.correct);

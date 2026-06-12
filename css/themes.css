@@ -2758,7 +2758,7 @@
     .pet-shop-grid,
     .pet-bag-list {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       margin-top: 14px;
     }
@@ -2767,7 +2767,7 @@
       align-items: start;
     }
     .pet-bag-list {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .pet-shop-tier {
       display: grid;
