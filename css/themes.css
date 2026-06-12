@@ -2796,6 +2796,7 @@
       gap: 10px;
     }
     .pet-bag-grid {
+      grid-column: 1 / -1;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
@@ -4602,6 +4603,7 @@
         gap: 5px;
       }
       .pet-bag-grid {
+        grid-column: 1 / -1;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         max-height: min(330px, calc(100dvh - 245px));
