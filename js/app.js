@@ -4756,33 +4756,37 @@
         startAutoReturnTimer();
       }
       const kind = options.kind || "hint";
-      const wasOpen = !els.mobilePetHintPopover.hidden && els.mobilePetHintPopover.dataset.kind === kind;
-      if (wasOpen) {
-        els.mobilePetHintPopover.hidden = true;
-        setTimeout(() => {
-          els.mobilePetHintPopover.dataset.kind = kind;
-          if (els.mobilePetHintTitle) {
-            els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : kind === "answer" ? "👁️" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
-          }
-          if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : kind === "answer" ? "关闭答案" : `关闭${petDisplayName()}提示`);
-          if (options.html) els.mobilePetHintText.innerHTML = message;
-          else els.mobilePetHintText.textContent = message;
-          els.mobilePetHintPopover.hidden = false;
-          els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
-          els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
-        }, 100);
-      } else {
-        els.mobilePetHintPopover.dataset.kind = kind;
-        if (els.mobilePetHintTitle) {
-          els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : kind === "answer" ? "👁️" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
-        }
-        if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : kind === "answer" ? "关闭答案" : `关闭${petDisplayName()}提示`);
+      const wasOpen = !els.mobilePetHintPopover.hidden;
+      const sameKind = els.mobilePetHintPopover.dataset.kind === kind;
+
+      // 如果弹窗已打开且是同类型，直接更新内容，不关闭重开
+      if (wasOpen && sameKind) {
         if (options.html) els.mobilePetHintText.innerHTML = message;
         else els.mobilePetHintText.textContent = message;
-        els.mobilePetHintPopover.hidden = false;
-        els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
-        els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
+        return;
       }
+
+      // 如果弹窗已打开但类型不同，先关闭再打开新类型
+      if (wasOpen && !sameKind) {
+        els.mobilePetHintPopover.hidden = true;
+        els.mobilePetHintPopover.closest(".companion")?.classList.remove("hint-open", "result-open");
+        setTimeout(() => {
+          openPetHintPopover(message, options);
+        }, 100);
+        return;
+      }
+
+      // 弹窗未打开，直接打开
+      els.mobilePetHintPopover.dataset.kind = kind;
+      if (els.mobilePetHintTitle) {
+        els.mobilePetHintTitle.innerHTML = `<span aria-hidden="true">${kind === "result" ? "🏁" : kind === "answer" ? "👁️" : "🐾"}</span> ${escapeHTML(options.title || `${petDisplayName()}小提示`)}`;
+      }
+      if (els.mobilePetHintClose) els.mobilePetHintClose.setAttribute("aria-label", kind === "result" ? "关闭本轮结果" : kind === "answer" ? "关闭答案" : `关闭${petDisplayName()}提示`);
+      if (options.html) els.mobilePetHintText.innerHTML = message;
+      else els.mobilePetHintText.textContent = message;
+      els.mobilePetHintPopover.hidden = false;
+      els.mobilePetHintPopover.closest(".companion")?.classList.add("hint-open");
+      els.mobilePetHintPopover.closest(".companion")?.classList.toggle("result-open", kind === "result");
     }
 
     function setFeedback(kind, message, face = "") {
@@ -5540,7 +5544,7 @@
       const bagItems = PET_SHOP.filter((item) => (pet.inventory?.[item.id] || 0) > 0);
       els.petBagList.innerHTML = bagItems.length ? `<div class="pet-bag-grid">
         ${bagItems.map((item) => `<article class="pet-bag-item" tabindex="0" role="button" data-pet-detail="${item.id}" aria-label="查看${escapeHTML(item.name)}作用">
-          <div class="pet-shop-icon" aria-hidden="true">${item.icon}</div>
+          <div class="pet-bag-icon" aria-hidden="true">${item.icon}</div>
           <strong>${escapeHTML(item.name)}</strong>
           <small>${tierLabels[item.tier || "advanced"] || "招财用品"}</small>
           <div class="pet-shop-buy">
@@ -5549,7 +5553,7 @@
           </div>
         </article>`).join("")}
       </div>` : `<section class="pet-bag-empty" aria-live="polite">
-        <div class="pet-shop-icon" aria-hidden="true">🎒</div>
+        <div class="pet-bag-icon" aria-hidden="true">🎒</div>
         <strong>背包还是空的</strong>
         <span>完成练习获得金币后，可以先去宠物商店买普通猫粮、小毛巾或毛线球。</span>
       </section>`;
