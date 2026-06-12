@@ -673,7 +673,7 @@
       const today = todayKey();
       return {
         name: "招财",
-        coins: 0,
+        coins: 100,  // 临时调试：默认100金币
         mood: 70,
         hunger: 70,
         clean: 70,
@@ -5567,12 +5567,36 @@
         box.hidden = true;
         box.innerHTML = "";
       });
+      // 清除所有选中状态
+      [els.petShopGrid, els.petBagList].forEach((container) => {
+        if (!container) return;
+        container.querySelectorAll("[data-pet-detail]").forEach((card) => {
+          card.classList.remove("is-selected");
+          card.setAttribute("aria-selected", "false");
+        });
+      });
     }
 
     function showPetItemDetail(itemId, kind = "shop") {
       const item = PET_ITEM_MAP[itemId];
       const box = kind === "bag" ? els.petBagDetail : els.petShopDetail;
       if (!item || !box) return;
+
+      // 清除同类型物品的选中状态
+      const container = kind === "bag" ? els.petBagList : els.petShopGrid;
+      if (container) {
+        container.querySelectorAll("[data-pet-detail]").forEach((card) => {
+          card.classList.remove("is-selected");
+          card.setAttribute("aria-selected", "false");
+        });
+        // 添加当前物品的选中状态
+        const selectedCard = container.querySelector(`[data-pet-detail="${itemId}"]`);
+        if (selectedCard) {
+          selectedCard.classList.add("is-selected");
+          selectedCard.setAttribute("aria-selected", "true");
+        }
+      }
+
       const actionCopy = item.rename
         ? "使用后可以修改一次宠物名字，全程序里的陪练、提示和空间名称会同步更新。"
         : `使用后：${item.desc}`;

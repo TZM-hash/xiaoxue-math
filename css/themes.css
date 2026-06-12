@@ -2854,7 +2854,9 @@
     .pet-shop-item:hover,
     .pet-bag-item:hover,
     .pet-shop-item:focus-visible,
-    .pet-bag-item:focus-visible {
+    .pet-bag-item:focus-visible,
+    .pet-shop-item.is-selected,
+    .pet-bag-item.is-selected {
       transform: translateY(-2px);
       border-color: color-mix(in oklch, var(--accent), white 38%);
       box-shadow: 0 12px 28px rgba(44, 86, 108, .16);
